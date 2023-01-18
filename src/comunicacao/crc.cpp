@@ -1,4 +1,4 @@
-#include "../inc/Crc.h"
+#include "../inc/crc.h"
 
 Crc::Crc() {}
 

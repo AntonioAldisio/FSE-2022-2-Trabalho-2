@@ -1,7 +1,7 @@
 #ifndef MODBUS_H_
 #define MODBUS_H_
 
-#include "../inc/Crc.h"
+#include "../inc/crc.h"
 
 class Modbus {
     private:

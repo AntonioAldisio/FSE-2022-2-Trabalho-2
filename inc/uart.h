@@ -1,7 +1,7 @@
 #ifndef UART_H_
 #define UART_H_
 
-#include "../inc/Modbus.h"
+#include "../inc/modbus.h"
 
 #include <cstring>
 #include <stdio.h>
