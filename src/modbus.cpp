@@ -37,7 +37,8 @@ unsigned char *Modbus::internalTempMessage(){
     unsigned char *msg = this->createMessage(ENVIA, SUB_CODIGO_C1, 9);
     uint16_t crc = crcCalculator.computeCrc(msg, 7);
 
-    msg[7] = crc >> 8;
+    memcpy(&msg[7], &crc, sizeof(crc));
+    // msg[7] = crc >> 8;
 
     return msg;
 }
@@ -46,7 +47,8 @@ unsigned char *Modbus::referenceTempMessage(){
     unsigned char *msg = this->createMessage(ENVIA, SUB_CODIGO_C2, 9);
     uint16_t crc = crcCalculator.computeCrc(msg, 7);
 
-    msg[7] = crc >> 8;
+    memcpy(&msg[7], &crc, sizeof(crc));
+    // msg[7] = crc >> 8;
 
 
     return msg;
@@ -64,32 +66,24 @@ unsigned char *Modbus::userInputMessage(){
 
 unsigned char *Modbus::sendIntSignalMessage(int signal){
     unsigned char *msg = this->createMessage(SOLICITA, SUB_CODIGO_D1, 12);
-    msg[7] = signal >> 8;
+    memcpy(&msg[7], &crc, sizeof(crc));
+    // msg[7] = signal >> 8;
     msg[8] = signal;
     uint16_t crc = crcCalculator.computeCrc(msg, 10);
 
-    msg[10] = crc >> 8;
+    memcpy(&msg[11], &crc, sizeof(crc));
+    // msg[10] = crc >> 8;
 
     return msg;
 }
-
-// unsigned char *Modbus::sendFloatSignalMessage(float signal){
-//     unsigned char *msg = this->createMessage(SOLICITA, SUB_CODIGO_D2, 12);
-//     msg[7] = signal >> 8;
-//     msg[8] = signal;
-//     uint16_t crc = crcCalculator.computeCrc(msg, 10);
-
-//     msg[10] = crc >> float(8);
-
-//     return msg;
-// }
 
 unsigned char *Modbus::setSystemStateMessage(unsigned char state){
     unsigned char *msg = this->createMessage(SOLICITA, SUB_CODIGO_D3, 10);
     msg[7] = state;
     uint16_t crc = crcCalculator.computeCrc(msg, 8);
 
-    msg[8] = crc >> 8;
+    memcpy(&msg[8], &crc, sizeof(crc));
+    // msg[8] = crc >> 8;
 
     return msg;
 }
@@ -106,11 +100,12 @@ unsigned char *Modbus::setSystemStatusMessage(unsigned char status){
 
 unsigned char *Modbus::sendTimerMessage(int timer){
     unsigned char *msg = this->createMessage(SOLICITA, SUB_CODIGO_D6, 12);
-    msg[7] = timer >> 8;
+    memcpy(&msg[7], &crc, sizeof(crc));
+    // msg[7] = timer >> 8;
     msg[8] = timer;
     uint16_t crc = crcCalculator.computeCrc(msg, 10);
-
-    msg[10] = crc >> 8;
+    memcpy(&msg[11], &crc, sizeof(crc));
+    // msg[10] = crc >> 8;
 
     return msg;
 }
