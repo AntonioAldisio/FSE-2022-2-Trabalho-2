@@ -34,7 +34,7 @@ void Uart::send(int msgSize, unsigned char *msg){
     }
 }
 
-void Uart::receive(){
+int Uart::receive(){
     usleep(50000);
     if (uart0_filestream != -1) {
         int rx_length = read(uart0_filestream, (void*)read_buffer, SIZE_MSG);
@@ -56,7 +56,7 @@ float Uart::getInternalTemp(){
     this->send(SIZE_MSG, msg);
     this->receive();
     if(msg[2] == read_buffer[2]){
-        return modbus.getInternalTemp();
+        return getInternalTemp();
     }
     memcpy(&internalTemp, &this->read_buffer[3], sizeof(float));
     return internalTemp;
@@ -68,7 +68,7 @@ float Uart::getReferenceTemp(){
     this->send(SIZE_MSG, msg);
     this->receive();
     if(msg[2] == read_buffer[2]){
-        return modbus.getReferenceTemp();
+        return getReferenceTemp();
     }
     memcpy(&referenceTemp, &this->read_buffer[3], sizeof(float));
     return referenceTemp;
@@ -80,7 +80,7 @@ int Uart::getUserInput(){
     receive();
 
     memcpy(&userInput, &this->read_buffer[3], sizeof(int));
-    this->read_buffer = new unsigned char[READ_MSG_SIZE];
+    this->read_buffer = new unsigned char[SIZE_MSG];
     return userInput;
 }
 
@@ -90,9 +90,9 @@ void Uart::sendControlSignal(int signal){
 
 void Uart::setSystemState(unsigned char state){
     send(10, modbus.setSystemStateMessage(state));
-    receive()
+    receive();
 }
 
-void Uart::setSystemStatus(int timer){
-    send(13, modbus.setSystemStatusMessage(timer));
-}
+// void Uart::setSystemStatus(int timer){
+//     send(13, modbus.setSystemStatusMessage(timer));
+// }

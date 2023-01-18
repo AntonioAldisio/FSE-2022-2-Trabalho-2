@@ -10,8 +10,8 @@ int main(void){
     Uart uart;
     uart.setup();
 
-    while(working){
+    // while(working){
         int retorno = uart.getUserInput();
         printf("%d", retorno);
-    }
+    // }
 }

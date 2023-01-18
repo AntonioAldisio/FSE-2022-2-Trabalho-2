@@ -13,7 +13,7 @@ const unsigned char SUB_CODIGO_D3 = 0xD3;
 const unsigned char SUB_CODIGO_D4 = 0xD4;
 const unsigned char SUB_CODIGO_D5 = 0xD5;
 const unsigned char SUB_CODIGO_D6 = 0xD6;
-const unsigned char ID[4] = {0x06, 0x05, 0x06, 0x05};
+const unsigned char ID[4] = {0x08, 0x02, 0x01, 0x01};
 
 
 Modbus::Modbus() {
@@ -71,16 +71,16 @@ unsigned char *Modbus::sendIntSignalMessage(int signal){
     return msg;
 }
 
-unsigned char *Modbus::sendFloatSignalMessage(float signal){
-    unsigned char *msg = this->createMessage(SOLICITA, SUB_CODIGO_D2, 12);
-    msg[7] = signal >> 8;
-    msg[8] = signal;
-    uint16_t crc = crcCalculator.computeCrc(msg, 10);
+// unsigned char *Modbus::sendFloatSignalMessage(float signal){
+//     unsigned char *msg = this->createMessage(SOLICITA, SUB_CODIGO_D2, 12);
+//     msg[7] = signal >> 8;
+//     msg[8] = signal;
+//     uint16_t crc = crcCalculator.computeCrc(msg, 10);
 
-    msg[10] = crc >> 8;
+//     msg[10] = crc >> float(8);
 
-    return msg;
-}
+//     return msg;
+// }
 
 unsigned char *Modbus::setSystemStateMessage(unsigned char state){
     unsigned char *msg = this->createMessage(SOLICITA, SUB_CODIGO_D3, 10);
