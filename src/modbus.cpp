@@ -66,7 +66,7 @@ unsigned char *Modbus::userInputMessage(){
 
 unsigned char *Modbus::sendIntSignalMessage(int signal){
     unsigned char *msg = this->createMessage(SOLICITA, SUB_CODIGO_D1, 12);
-    memcpy(&msg[7], &Crc, sizeof(crc));
+    memcpy(&msg[7], &crc, sizeof(crc));
     // msg[7] = signal >> 8;
     msg[8] = signal;
     uint16_t crc = crcCalculator.computeCrc(msg, 10);
