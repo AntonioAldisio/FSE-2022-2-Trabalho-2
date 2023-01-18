@@ -48,6 +48,7 @@ unsigned char *Modbus::referenceTempMessage(){
 
     msg[7] = crc >> 8;
 
+
     return msg;
 }
 
@@ -55,7 +56,8 @@ unsigned char *Modbus::userInputMessage(){
     unsigned char *msg = this->createMessage(ENVIA, SUB_CODIGO_C3, 9);
     uint16_t crc = crcCalculator.computeCrc(msg, 7);
 
-    msg[7] = crc >> 8;
+    memcpy(&msg[7], &crc, sizeof(crc))
+    // msg[7] = crc >> 8;
 
     return msg;
 }
