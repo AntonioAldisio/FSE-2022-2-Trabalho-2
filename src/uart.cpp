@@ -92,7 +92,3 @@ void Uart::setSystemState(unsigned char state){
     send(10, modbus.setSystemStateMessage(state));
     receive();
 }
-
-// void Uart::setSystemStatus(int timer){
-//     send(13, modbus.setSystemStatusMessage(timer));
-// }
