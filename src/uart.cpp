@@ -36,13 +36,13 @@ void Uart::send(int msgSize, unsigned char *msg){
 
 int Uart::receive(){
     usleep(50000);
-    if (uart0_filestream != -1) {
-        int rx_length = read(uart0_filestream, (void*)read_buffer, SIZE_MSG);
-        if (rx_length < 0) {
-            return 0;
-        }
-        return rx_length;
+    // if (uart0_filestream != -1) {
+    int rx_length = read(uart0_filestream, (void*)read_buffer, SIZE_MSG);
+    if (rx_length <= 0) {
+        return 0;
     }
+    return rx_length;
+    // }
 }
 
 void Uart::stop(){
@@ -55,7 +55,7 @@ float Uart::getInternalTemp(){
     unsigned char *msg = modbus.internalTempMessage();
     this->send(SIZE_MSG, msg);
     this->receive();
-    if(msg[2] == read_buffer[2]){
+    if(!(msg[2] == read_buffer[2])){
         return getInternalTemp();
     }
     memcpy(&internalTemp, &this->read_buffer[3], sizeof(float));
@@ -67,7 +67,7 @@ float Uart::getReferenceTemp(){
     unsigned char *msg = modbus.referenceTempMessage();
     this->send(SIZE_MSG, msg);
     this->receive();
-    if(msg[2] == read_buffer[2]){
+    if(!(msg[2] == read_buffer[2])){
         return getReferenceTemp();
     }
     memcpy(&referenceTemp, &this->read_buffer[3], sizeof(float));
