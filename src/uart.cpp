@@ -28,7 +28,7 @@ void Uart::setup(){
 void Uart::send(int msgSize, unsigned char *msg){
     if (uart0_filestream != -1) {
         int count = write(uart0_filestream, msg, msgSize);
-        if (count < 0) {
+        if (count <= 0) {
             return;
         }
     }
@@ -90,5 +90,10 @@ void Uart::sendControlSignal(int signal){
 
 void Uart::setSystemState(unsigned char state){
     send(10, modbus.setSystemStateMessage(state));
+    receive();
+}
+
+void Uart::setSystemStatus(unsigned char status){
+    send(10, modbus.setSystemStateMessage(status));
     receive();
 }

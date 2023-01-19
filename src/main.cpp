@@ -1,17 +1,45 @@
 #include "../inc/uart.h"
+#include <time.h>
 
 
 const int FORNO = 4;
 const int FAN = 5;
 
 bool working = true;
+int count = 0;
 
 int main(void){
     Uart uart;
     uart.setup();
 
-    // while(working){
+    while(working){
         int retorno = uart.getUserInput();
-        printf("%d", retorno);
-    // }
+        if (retorno == 161){
+            printf("Ligado \n");
+            uart.setSystemState(1);
+        }
+        else if (retorno == 162){
+            printf("Desligado \n");
+            uart.setSystemState(0);
+        }
+        else if (retorno == 163){
+            printf("Iniciado \n");
+            uart.setSystemStatus(1);
+        }
+        else if (retorno == 164){
+            printf("Parado \n");
+            uart.setSystemStatus(0);
+
+        }
+        else if (retorno == 165){
+            printf("Manual \n");
+        }
+        else {
+            usleep(1000000);
+            printf("%d \n", retorno);
+        }
+    }
+    uart.stop();
+    printf("Desligando... \n");
+    return 0;
 }
