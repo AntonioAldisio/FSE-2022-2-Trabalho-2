@@ -1,4 +1,6 @@
 #include "../inc/uart.h"
+#include "../inc/bme280.h"
+#include "../inc/sensorTemp.h"
 #include <time.h>
 #include <wiringPi.h>
 
@@ -14,9 +16,11 @@ int main(void){
     Pid pid;
 
     uart.setup();
+    Sensor sensor = Sensor("/dev/i2c-1", &bme, &id);
     pid.setup(50.0, 0.2, 400.0);
 
     while(working){
+        printf("%f", sensor.getSensorTemp(&bme))
         int retorno = uart.getUserInput();
         if (retorno == 161){
             printf("Ligado \n");
@@ -40,7 +44,7 @@ int main(void){
         }
         else {
             usleep(1000000);
-            printf("%d \n", retorno);
+            // printf("%d \n", retorno);
         }
     }
     uart.stop();
