@@ -1,5 +1,6 @@
 #include "../inc/uart.h"
 #include <time.h>
+#include <wiringPi.h>
 
 
 const int FORNO = 4;
@@ -10,7 +11,10 @@ int count = 0;
 
 int main(void){
     Uart uart;
+    Pid pid;
+
     uart.setup();
+    pid.setup(50.0, 0.2, 400.0);
 
     while(working){
         int retorno = uart.getUserInput();
