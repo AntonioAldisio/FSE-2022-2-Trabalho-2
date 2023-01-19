@@ -28,7 +28,7 @@ class Sensor {
     double getSensorTemp(struct bme280_dev *dev);
     static int8_t i2c_read(uint8_t reg_addr, uint8_t *data, uint32_t len, void *intf_ptr);
     static int8_t i2c_write(uint8_t reg_addr, const uint8_t *data, uint32_t len, void *intf_ptr);
-    static void user_delay_us(uint32_t period, void *intf_ptr);
+    static void delay_us(uint32_t period, void *intf_ptr);
 
 };
 
