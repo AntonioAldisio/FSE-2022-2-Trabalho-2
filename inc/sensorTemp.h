@@ -19,7 +19,7 @@ struct identifier {
 };
 
 
-class AmbientTempSensor {
+class Sensor {
     private:
     int8_t rslt;
 
