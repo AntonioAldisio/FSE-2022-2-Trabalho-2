@@ -113,6 +113,31 @@ void esfriando(Uart uart, Sensor Sensor, Pid pid, double *intensidade){
 //     }
 // }
 
+void definePidSetup(int escolha, Pid pid){
+    if (escolha == 1){
+        pid.setup(50.0, 0.2, 400.0);
+    }else if { escolha == 2}{
+        double kp, ki, kd;
+        printf('Escolha o valor do kp');
+        scanf("%f", &kp);
+        printf('Escolha o valor do ki');
+        scanf("%f", &ki);
+        printf('Escolha o valor do kd');
+        scanf("%f", &kd);
+        pid.setup(kp, ki, kd);
+    }else{
+        printf('Escolha invalida \n');
+        printf('Foi colocado os seguintes valores Kp = 30.0 - Ki = 0.2 - Kd = 400.0');
+        pid.setup(50.0, 0.2, 400.0);
+    }
+}
+
+void setDown(){
+    status(0);
+    uart.setSystemState(0);
+    uart.setSystemStatus(0);
+}
+
 int main(void){
     Uart uart;
     Pid pid;
@@ -122,20 +147,24 @@ int main(void){
     bool execucao = false;
 
     // SetUp
+    printf('Escolha o modo de configuracao do PID \n');
+    printf('1 - Configuracao padrao \n');
+    printf('2 - Configuracao personalizada \n');
+    int escolha;
+    scanf("%d", &escolha);
+    definePidSetup(escolha, pid);
+
     uart.setup();
-    pid.setup(50.0, 0.2, 400.0);
+    // pid.setup(50.0, 0.2, 400.0);
     setupPin();
 
     Sensor sensor = Sensor("/dev/i2c-1", &bme280, &id);
-    
+
     signal(SIGINT, stop);
 
     // zera sistema
-    status(0);
-    uart.receive();
-    uart.setSystemState(0);
-    uart.setSystemStatus(0);
-    
+    setDown()
+
     while(working){
         int retorno = uart.getUserInput();
         printf("%d \n", retorno);
@@ -180,10 +209,7 @@ int main(void){
             // printf("%d \n", retorno);
         }
     }
-    status(0);
-    uart.receive();
-    uart.setSystemState(0);
-    uart.setSystemStatus(0);
+    setDown()
     uart.stop();
     printf("\n\n Desligando... \n\n");
     return 0;
