@@ -36,15 +36,14 @@ void setupPin(){
 
 
 void status(double intensidade){
-    printf("intensidade: %f \n", intensidade);
     if (intensidade >= 0){
         softPwmWrite(FORNO, intensidade);
         softPwmWrite(VENTOINHA, 0);
     }else{
         if(intensidade > -40){
             intensidade = 40;
-            softPwmWrite(FORNO, 40);
-            softPwmWrite(VENTOINHA, 0);
+            softPwmWrite(VENTOINHA, 40);
+            softPwmWrite(FORNO, 0);
         }else{
             intensidade = intensidade * (-1);
             softPwmWrite(VENTOINHA, intensidade);
@@ -65,15 +64,18 @@ void esquenta(Uart uart, Pid pid, double *intensidade){
         
         printf("Estou Esquetando \n");
         printf("temInter %f\n", temInter);
-        printf("ambTemp %f\n\n\n", tempRef);
+        printf("tempRef %f\n", tempRef);
+
 
         tempRef = uart.getReferenceTemp();
         temInter = uart.getInternalTemp();
         
+        pid.pid_atualiza_referencia(tempRef);
         *intensidade = pid.pid_controle(temInter);
+        printf("intensidade: %f \n\n\n", intensidade);
         status(*intensidade);
         uart.sendControlSignal((int)*intensidade);
-        sleep(10);
+        sleep(2);
     }
 }
 
@@ -85,7 +87,7 @@ void esfriando(Uart uart, Sensor Sensor, Pid pid, double *intensidade){
     *intensidade = 100.0;
     status(*intensidade);
 
-    while(working && temInter >= ambTemp){
+    while(working && temInter > ambTemp){
         
         printf("Estou esfriando\n");
         printf("temInter %f\n", temInter);
@@ -93,12 +95,23 @@ void esfriando(Uart uart, Sensor Sensor, Pid pid, double *intensidade){
         
         ambTemp = Sensor.getSensorTemp(&bme280);
         temInter = uart.getInternalTemp();
-        softPwmWrite(VENTOINHA, 100);
+
         uart.sendControlSignal((int)*intensidade);
-        sleep(10);
+        sleep(2);
     }
     uart.setSystemStatus(0);
 }
+
+
+// void temperatura(Uart uart, Pid pid, double *intensidade){
+//     double ambTemp = Sensor.getSensorTemp(&bme280);
+//     float temInter = uart.getInternalTemp();
+//     float tempRef = uart.getReferenceTemp();
+
+//     while(working){
+
+//     }
+// }
 
 int main(void){
     Uart uart;
@@ -116,6 +129,12 @@ int main(void){
     Sensor sensor = Sensor("/dev/i2c-1", &bme280, &id);
     
     signal(SIGINT, stop);
+
+    // zera sistema
+    status(0);
+    uart.receive();
+    uart.setSystemState(0);
+    uart.setSystemStatus(0);
     
     while(working){
         int retorno = uart.getUserInput();
