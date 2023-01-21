@@ -1,6 +1,7 @@
 #include <time.h>
 #include <wiringPi.h>
 #include <softPwm.h>
+#include <signal.h>
 
 #include "../inc/uart.h"
 #include "../inc/bme280.h"
@@ -17,12 +18,10 @@ int count = 0;
 const int FORNO = 4;
 const int VENTOINHA = 5;
 
-void stop(int signal) {
+void stop (int signal) {
     signal = signal;
-    systemWorking = false;
+    working = false;
 }
-
-signal(SIGINT, stop);
 
 void setupPin(){
     if (wiringPiSetup() != -1) {
@@ -46,8 +45,8 @@ void status(double intensidade){
             softPwmWrite(VENTOINHA, 0);
         }else{
             double aux = intensidade * (-1);
-            softPwmWrite(FORNO, aux);
-            softPwmWrite(VENTOINHA, 0);
+            softPwmWrite(VENTOINHA, aux);
+            softPwmWrite(FORNO, 0);
         }
     }
 }
@@ -69,7 +68,7 @@ void esquenta(Uart uart, Pid pid, double *intensidade){
     }
 }
 
-void esfriando(Uart uart, Sensor Sensor, double *intensidade){
+void esfriando(Uart uart, Sensor Sensor, Pid pid, double *intensidade){
     double ambTemp = Sensor.getSensorTemp(&bme280);
     float temInter = uart.getInternalTemp();
     *intensidade = 100.0;
@@ -97,7 +96,9 @@ int main(void){
     setupPin();
 
     Sensor sensor = Sensor("/dev/i2c-1", &bme280, &id);
-
+    
+    signal(SIGINT, stop);
+    
     while(working){
         int retorno = uart.getUserInput();
         printf("%d \n", retorno);
@@ -114,7 +115,7 @@ int main(void){
             printf("Iniciado \n");
             uart.setSystemStatus(1);
             esquenta(uart, pid, &intensidade);
-            esfriando(uart, pid, &intensidade);
+            esfriando(uart, sensor, pid, &intensidade);
 
         }
         else if (retorno == 164){
@@ -130,11 +131,11 @@ int main(void){
             // printf("%d \n", retorno);
         }
     }
-    setStatus(0);
+    status(0);
     uart.receive();
     uart.setSystemState(0);
     uart.setSystemStatus(0);
     uart.stop();
-    printf("Desligando... \n");
+    printf("\n\n Desligando... \n\n");
     return 0;
 }
