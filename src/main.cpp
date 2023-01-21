@@ -60,11 +60,14 @@ void esquenta(Uart uart, Pid pid, double *intensidade){
     status(*intensidade);
 
     while(working && temInter <= tempRef){
+        printf("Estou Esquetando \n\n");
+        printf("temInter %f\n", temInter);
+        printf("ambTemp %f\n", tempRef);
         tempRef = uart.getReferenceTemp();
         temInter = uart.getInternalTemp();
         *intensidade = pid.pid_controle(temInter);
         uart.sendControlSignal((int)*intensidade);
-        sleep(1);
+        sleep(10);
     }
 }
 
@@ -75,11 +78,14 @@ void esfriando(Uart uart, Sensor Sensor, Pid pid, double *intensidade){
     status(*intensidade);
 
     while(working && temInter >= ambTemp){
+        printf("Estou esfriando \n\n");
+        printf("temInter %f\n", temInter);
+        printf("ambTemp %f\n", ambTemp);
         ambTemp = Sensor.getSensorTemp(&bme280);
         temInter = uart.getInternalTemp();
         *intensidade = pid.pid_controle(temInter);
         uart.sendControlSignal((int)*intensidade);
-        sleep(1);
+        sleep(10);
     }
     uart.setSystemStatus(0);
 }
