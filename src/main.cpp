@@ -17,6 +17,13 @@ int count = 0;
 const int FORNO = 4;
 const int VENTOINHA = 5;
 
+void stop(int signal) {
+    signal = signal;
+    systemWorking = false;
+}
+
+signal(SIGINT, stop);
+
 void setupPin(){
     if (wiringPiSetup() != -1) {
         pinMode(FORNO, OUTPUT);
@@ -62,6 +69,22 @@ void esquenta(Uart uart, Pid pid, double *intensidade){
     }
 }
 
+void esfriando(Uart uart, Sensor Sensor, double *intensidade){
+    double ambTemp = Sensor.getSensorTemp(&bme280);
+    float temInter = uart.getInternalTemp();
+    *intensidade = 100.0;
+    status(*intensidade);
+
+    while(working && temInter >= ambTemp){
+        ambTemp = Sensor.getSensorTemp(&bme280);
+        temInter = uart.getInternalTemp();
+        *intensidade = pid.pid_controle(temInter);
+        uart.sendControlSignal((int)*intensidade);
+        sleep(1);
+    }
+    uart.setSystemStatus(0);
+}
+
 int main(void){
     Uart uart;
     Pid pid;
@@ -91,6 +114,7 @@ int main(void){
             printf("Iniciado \n");
             uart.setSystemStatus(1);
             esquenta(uart, pid, &intensidade);
+            esfriando(uart, pid, &intensidade);
 
         }
         else if (retorno == 164){
@@ -106,6 +130,10 @@ int main(void){
             // printf("%d \n", retorno);
         }
     }
+    setStatus(0);
+    uart.receive();
+    uart.setSystemState(0);
+    uart.setSystemStatus(0);
     uart.stop();
     printf("Desligando... \n");
     return 0;
