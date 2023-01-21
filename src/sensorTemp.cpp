@@ -62,6 +62,8 @@ double Sensor::getSensorTemp(struct bme280_dev *dev){
     rslt = bme280_set_sensor_mode(BME280_FORCED_MODE, dev);
     dev->delay_us(70000, dev->intf_ptr);
     rslt = bme280_get_sensor_data(BME280_ALL, &comp_data, dev);
+    
+    // printf("%d \n", comp_data.temperature);
     // temp = comp_data.temperature
 
     return comp_data.temperature;
