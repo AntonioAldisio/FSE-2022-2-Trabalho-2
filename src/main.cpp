@@ -28,23 +28,31 @@ void setupPin(){
     }
 }
 
-void esquenta(Uart uart, Pid pid, double *intensidade){
-    float tempRef = uart.getReferenceTemp();
-    float temInter = uart.getInternalTemp();
-    *intensidade = 100.0;
+
+void status(double intensidade){
     if (intensidade >= 0){
-        softPwmWrite(FORNO, (double)*intensidade);
+        softPwmWrite(FORNO, intensidade);
         softPwmWrite(VENTOINHA, 0);
     }else{
-        if((int)*intensidade > -40){
+        if(intensidade > -40){
             softPwmWrite(FORNO, 40);
             softPwmWrite(VENTOINHA, 0);
         }else{
-            double aux = (int)*intensidade * (-1);
+            double aux = intensidade * (-1);
             softPwmWrite(FORNO, aux);
             softPwmWrite(VENTOINHA, 0);
         }
     }
+}
+
+
+void esquenta(Uart uart, Pid pid, double *intensidade){
+    float tempRef = uart.getReferenceTemp();
+    float temInter = uart.getInternalTemp();
+
+    *intensidade = 100.0;
+    status(*intensidade);
+
     while(working && temInter <= tempRef){
         tempRef = uart.getReferenceTemp();
         temInter = uart.getInternalTemp();
@@ -68,10 +76,8 @@ int main(void){
     Sensor sensor = Sensor("/dev/i2c-1", &bme280, &id);
 
     while(working){
-        int temp;
-        temp = sensor.getSensorTemp(&bme280);
-        printf("%d \n", temp);
         int retorno = uart.getUserInput();
+        printf("%d \n", retorno);
         if (retorno == 161){
             printf("Ligado \n");
             uart.setSystemState(1);
