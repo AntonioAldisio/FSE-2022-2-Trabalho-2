@@ -26,30 +26,34 @@ const int VENTOINHA = 5;
 void stop (int signal);
 void setupPin();
 void status(double intensidade);
-void esquenta(Uart uart, Sensor Sensor, Pid pid, double *intensidade);
+void esquenta(Uart uart, Pid pid, double *intensidade);
 void esfriando(Uart uart, Sensor Sensor, Pid pid, double *intensidade);
 void definePidSetup(int escolha, Pid pid);
 void setDown(Uart uart);
 void parar(Uart uart);
-void saveCSV(Uart uart, Sensor sensor,  double intensidade);
 
 
 int main(void){
     Uart uart;
     Pid pid;
-    Sensor sensor = Sensor("/dev/i2c-1", &bme280, &id);
 
     double intensidade = 0;
     bool ligado = false;
     bool execucao = false;
 
     // SetUp
-    pid.userSetup();
+    printf("Escolha o modo de configuracao do PID \n");
+    printf("1 - Configuracao padrao \n");
+    printf("2 - Configuracao personalizada \n");
+    int escolha;
+    scanf("%d", &escolha);
+    definePidSetup(escolha, pid);
+
     uart.setup();
+    // pid.setup(50.0, 0.2, 400.0);
     setupPin();
 
-    // pid.setup(50.0, 0.2, 400.0);
-
+    Sensor sensor = Sensor("/dev/i2c-1", &bme280, &id);
 
     signal(SIGINT, stop);
 
@@ -155,20 +159,20 @@ void esquenta(Uart uart, Pid pid, Sensor Sensor, double *intensidade){
 
         pid.pid_atualiza_referencia(tempRef);
         *intensidade = pid.pid_controle(temInter);
-        printf("intensidade: %d \n\n\n", intensidade);
+        printf("intensidade: %lf \n\n\n", intensidade);
         uart.sendControlSignal((int)*intensidade);
 
         // Para o comando
         if (uart.getUserInput() == 164) {
             break;
         }
-        saveCSV(uart, Sensor, &intensidade);
+        saveCSV(uart, pid, Sensor);
 
         sleep(1);
     }
 }
 
-void saveCSV(Uart uart, Sensor sensor, double intensidade){
+void saveCSV(Uart uart, Pid pid, Sensor sensor){
     FILE* csv = fopen("../log.csv", "w");
     if (csv == NULL){
         perror("Error");
@@ -180,8 +184,8 @@ void saveCSV(Uart uart, Sensor sensor, double intensidade){
     char timeString[20];
     strftime(dateString, sizeof(dateString), "%Y-%m-%d", timenow);
     strftime(timeString, sizeof(timeString), "%H:%M:%S", timenow);
-    fprintf(csv, "%s, %s, %f, %f, %f, %.2lf\n", dateString, timeString, uart.getInternalTemp(), sensor.getSensorTemp(&bme280), uart.getReferenceTemp(), intensidade);
-    printf("%s, %s, %f, %f, %f, %.2lf\n", dateString, timeString, uart.getInternalTemp(), sensor.getSensorTemp(&bme280), uart.getReferenceTemp(), intensidade);
+    fprintf(csv, "%s, %s, %f, %f, %f, %.2lf\n", dateString, timeString, uart.getInternalTemp(), sensor.getSensorTemp(&bme), uart.getReferenceTemp(), *pid);
+    printf("%s, %s, %f, %f, %f, %.2lf\n", dateString, timeString, uart.getInternalTemp(), sensor.getSensorTemp(&bme), uart.getReferenceTemp(), *pid);
     fclose(csv);
 }
 
@@ -211,11 +215,29 @@ void esfriando(Uart uart, Sensor Sensor, Pid pid, double *intensidade){
         if (uart.getUserInput() == 164) {
             break;
         }
-        saveCSV(uart, Sensor, &intensidade);
+        saveCSV(uart, pid, Sensor)
         sleep(1);
     }
 }
 
+void definePidSetup(int escolha, Pid pid){
+    if (escolha == 1){
+        pid.setup(50.0, 0.2, 400.0);
+    }else if (escolha == 2){
+        double kp, ki, kd;
+        printf("Escolha o valor do kp \n");
+        scanf("%lf", &kp);
+        printf("Escolha o valor do ki \n");
+        scanf("%lf", &ki);
+        printf("Escolha o valor do kd \n");
+        scanf("%lf", &kd);
+        pid.setup(kp, ki, kd);
+    }else{
+        printf("Escolha invalida \n");
+        printf("Foi colocado os seguintes valores Kp = 30.0 - Ki = 0.2 - Kd = 400.0 \n");
+        pid.setup(50.0, 0.2, 400.0);
+    }
+}
 
 void setDown(Uart uart){
     status(0);
