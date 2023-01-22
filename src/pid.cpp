@@ -8,7 +8,29 @@ Pid::Pid () {
     this->previous_error = 0.0;
     this->reference_temp = 0.0;
 }
-
+void Pid::userSetup(){
+    printf("Escolha o modo de configuracao do PID \n");
+    printf("1 - Configuracao padrao \n");
+    printf("2 - Configuracao personalizada \n");
+    int escolha;
+    scanf("%d", &escolha);
+    if (escolha == 1){
+        pid.setup(50.0, 0.2, 400.0);
+    }else if (escolha == 2){
+        double kp, ki, kd;
+        printf("Escolha o valor do kp \n");
+        scanf("%lf", &kp);
+        printf("Escolha o valor do ki \n");
+        scanf("%lf", &ki);
+        printf("Escolha o valor do kd \n");
+        scanf("%lf", &kd);
+        pid.setup(kp, ki, kd);
+    }else{
+        printf("Escolha invalida \n");
+        printf("Foi colocado os seguintes valores Kp = 30.0 - Ki = 0.2 - Kd = 400.0 \n");
+        pid.setup(50.0, 0.2, 400.0);
+    }
+}
 void Pid::setup(double Kp_, double Ki_, double Kd_){
     this->Kp = Kp_;
     this->Ki = Ki_;

@@ -44,16 +44,11 @@ int main(void){
     bool execucao = false;
 
     // SetUp
-    printf("Escolha o modo de configuracao do PID \n");
-    printf("1 - Configuracao padrao \n");
-    printf("2 - Configuracao personalizada \n");
-    int escolha;
-    scanf("%d", &escolha);
-    definePidSetup(escolha, pid);
-
+    pid.userSetup();
     uart.setup();
-    // pid.setup(50.0, 0.2, 400.0);
     setupPin();
+
+    // pid.setup(50.0, 0.2, 400.0);
 
 
     signal(SIGINT, stop);
@@ -221,24 +216,6 @@ void esfriando(Uart uart, Sensor Sensor, Pid pid, double *intensidade){
     }
 }
 
-void definePidSetup(int escolha, Pid pid){
-    if (escolha == 1){
-        pid.setup(50.0, 0.2, 400.0);
-    }else if (escolha == 2){
-        double kp, ki, kd;
-        printf("Escolha o valor do kp \n");
-        scanf("%lf", &kp);
-        printf("Escolha o valor do ki \n");
-        scanf("%lf", &ki);
-        printf("Escolha o valor do kd \n");
-        scanf("%lf", &kd);
-        pid.setup(kp, ki, kd);
-    }else{
-        printf("Escolha invalida \n");
-        printf("Foi colocado os seguintes valores Kp = 30.0 - Ki = 0.2 - Kd = 400.0 \n");
-        pid.setup(50.0, 0.2, 400.0);
-    }
-}
 
 void setDown(Uart uart){
     status(0);
