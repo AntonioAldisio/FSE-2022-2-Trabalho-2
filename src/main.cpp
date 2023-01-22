@@ -19,13 +19,13 @@ const int FORNO = 4;
 const int VENTOINHA = 5;
 
 // Declaracoes
-void stop (int signal)
-void setupPin()
-void status(double intensidade)
-void esquenta(Uart uart, Pid pid, double *intensidade)
-void esfriando(Uart uart, Sensor Sensor, Pid pid, double *intensidade)
-void definePidSetup(int escolha, Pid pid)
-void setDown(Uart uart)
+void stop (int signal);
+void setupPin();
+void status(double intensidade);
+void esquenta(Uart uart, Pid pid, double *intensidade);
+void esfriando(Uart uart, Sensor Sensor, Pid pid, double *intensidade);
+void definePidSetup(int escolha, Pid pid);
+void setDown(Uart uart);
 
 
 int main(void){
