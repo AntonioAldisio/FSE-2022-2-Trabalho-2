@@ -2,6 +2,9 @@
 #include <wiringPi.h>
 #include <softPwm.h>
 #include <signal.h>
+#include <time.h>
+#include <iostream>
+#include <fstream>
 
 #include "../inc/uart.h"
 #include "../inc/bme280.h"
@@ -11,6 +14,7 @@
 
 struct bme280_dev bme280;
 struct identifier id;
+struct tm *timenow;
 
 
 bool working = true;
@@ -79,7 +83,7 @@ int main(void){
                 execucao = true;
                 printf("Iniciado \n");
                 uart.setSystemStatus(1);
-                esquenta(uart, pid, &intensidade);
+                esquenta(uart, pid, sensor, &intensidade);
                 esfriando(uart, sensor, pid, &intensidade);
             }
         }
@@ -135,9 +139,10 @@ void status(double intensidade){
         }
 }
 
-void esquenta(Uart uart, Pid pid, double *intensidade){
+void esquenta(Uart uart, Pid pid, Sensor Sensor, double *intensidade){
     float tempRef = uart.getReferenceTemp();
     float temInter = uart.getInternalTemp();
+    double ambTemp = Sensor.getSensorTemp(&bme280);
 
     *intensidade = 100.0;
     status(*intensidade);
@@ -150,6 +155,7 @@ void esquenta(Uart uart, Pid pid, double *intensidade){
 
         tempRef = uart.getReferenceTemp();
         temInter = uart.getInternalTemp();
+        ambTemp = Sensor.getSensorTemp(&bme280);
 
         pid.pid_atualiza_referencia(tempRef);
         *intensidade = pid.pid_controle(temInter);
@@ -160,9 +166,27 @@ void esquenta(Uart uart, Pid pid, double *intensidade){
         if (uart.getUserInput() == 164) {
             break;
         }
-    
+        saveCSV(uart, pid, Sensor);
+
         sleep(1);
     }
+}
+
+void saveCSV(Uart uart, Pid pid, Sensor sensor){
+    FILE* csv = fopen("../log.csv", "w");
+    if (csv == NULL){
+        perror("Error");
+    }
+    // std::ofstream csv;
+    time_t now = time(NULL);
+    timenow = gmtime(&now);
+    char dateString[20];
+    char timeString[20];
+    strftime(dateString, sizeof(dateString), "%Y-%m-%d", timenow);
+    strftime(timeString, sizeof(timeString), "%H:%M:%S", timenow);
+    fprintf(csv, "%s, %s, %f, %f, %f, %.2lf\n", dateString, timeString, uart.getInternalTemp(), sensor.getSensorTemp(&bme), uart.getReferenceTemp(), *pid);
+    printf("%s, %s, %f, %f, %f, %.2lf\n", dateString, timeString, uart.getInternalTemp(), sensor.getSensorTemp(&bme), uart.getReferenceTemp(), *pid);
+    fclose(csv);
 }
 
 void esfriando(Uart uart, Sensor Sensor, Pid pid, double *intensidade){
@@ -182,19 +206,18 @@ void esfriando(Uart uart, Sensor Sensor, Pid pid, double *intensidade){
         ambTemp = Sensor.getSensorTemp(&bme280);
         temInter = uart.getInternalTemp();
         tempRef = uart.getReferenceTemp();
-        
+
         pid.pid_atualiza_referencia(tempRef);
-        
+
         uart.sendControlSignal((int)*intensidade);
 
         // Para o comando
         if (uart.getUserInput() == 164) {
             break;
         }
-    
+        saveCSV(uart, pid, Sensor)
         sleep(1);
     }
-    uart.setSystemStatus(0);
 }
 
 void definePidSetup(int escolha, Pid pid){
