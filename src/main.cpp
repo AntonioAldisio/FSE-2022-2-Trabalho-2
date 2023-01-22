@@ -26,6 +26,7 @@ void esquenta(Uart uart, Pid pid, double *intensidade);
 void esfriando(Uart uart, Sensor Sensor, Pid pid, double *intensidade);
 void definePidSetup(int escolha, Pid pid);
 void setDown(Uart uart);
+void parar(Uart uart);
 
 
 int main(void){
@@ -128,16 +129,10 @@ void status(double intensidade){
         softPwmWrite(FORNO, intensidade);
         softPwmWrite(VENTOINHA, 0);
     }else{
-        if(intensidade > -40){
-            intensidade = 40;
-            softPwmWrite(VENTOINHA, 40);
-            softPwmWrite(FORNO, 0);
-        }else{
-            intensidade = intensidade * (-1);
-            softPwmWrite(VENTOINHA, intensidade);
-            softPwmWrite(FORNO, 0);
+        intensidade > -40 ? intensidade=40: intensidade *= -1;
+        softPwmWrite(VENTOINHA, intensidade);
+        softPwmWrite(FORNO, 0);
         }
-    }
 }
 
 void esquenta(Uart uart, Pid pid, double *intensidade){
@@ -160,6 +155,10 @@ void esquenta(Uart uart, Pid pid, double *intensidade){
         *intensidade = pid.pid_controle(temInter);
         printf("intensidade: %lf \n\n\n", intensidade);
         uart.sendControlSignal((int)*intensidade);
+
+        // Para o comando
+        void parar(uart);
+    
         sleep(1);
     }
 }
@@ -169,19 +168,27 @@ void esfriando(Uart uart, Sensor Sensor, Pid pid, double *intensidade){
     float temInter = uart.getInternalTemp();
     float tempRef = uart.getReferenceTemp();
 
-    *intensidade = 100.0;
+    *intensidade = -100.0;
     status(*intensidade);
 
-    while(working && temInter > ambTemp && temInter >= tempRef){
+    while(working && temInter >= tempRef){
 
         printf("Estou esfriando \n");
         printf("temInter %f\n", temInter);
-        printf("ambTemp %f\n\n\n", ambTemp);
+        printf("tempRef %f\n", tempRef);
 
         ambTemp = Sensor.getSensorTemp(&bme280);
         temInter = uart.getInternalTemp();
+        tempRef = uart.getReferenceTemp();
+        
+        pid.pid_atualiza_referencia(tempRef);
+
 
         uart.sendControlSignal((int)*intensidade);
+
+        // Para o comando
+        void parar(uart);
+    
         sleep(1);
     }
     uart.setSystemStatus(0);
@@ -210,4 +217,11 @@ void setDown(Uart uart){
     status(0);
     uart.setSystemState(0);
     uart.setSystemStatus(0);
+}
+
+void parar(Uart uart){
+    printf("parar %d", uart.getUserInput());
+    if (uart.getUserInput() == 164) {
+        break;
+    }
 }
