@@ -18,7 +18,7 @@ int count = 0;
 const int FORNO = 4;
 const int VENTOINHA = 5;
 
-// Declaracoes 
+// Declaracoes
 void stop (int signal)
 void setupPin()
 void status(double intensidade)
@@ -148,20 +148,19 @@ void esquenta(Uart uart, Pid pid, double *intensidade){
     status(*intensidade);
 
     while(working && temInter <= tempRef){
-        
+
         printf("Estou Esquetando \n");
         printf("temInter %f\n", temInter);
         printf("tempRef %f\n", tempRef);
 
         tempRef = uart.getReferenceTemp();
         temInter = uart.getInternalTemp();
-        
+
         pid.pid_atualiza_referencia(tempRef);
         *intensidade = pid.pid_controle(temInter);
         printf("intensidade: %lf \n\n\n", intensidade);
-        status(*intensidade);
         uart.sendControlSignal((int)*intensidade);
-        sleep(2);
+        sleep(1);
     }
 }
 
@@ -173,17 +172,17 @@ void esfriando(Uart uart, Sensor Sensor, Pid pid, double *intensidade){
     *intensidade = 100.0;
     status(*intensidade);
 
-    while(working && temInter > ambTemp && temInter >=){
-        
+    while(working && temInter > ambTemp && temInter >= tempRef){
+
         printf("Estou esfriando \n");
         printf("temInter %f\n", temInter);
         printf("ambTemp %f\n\n\n", ambTemp);
-        
+
         ambTemp = Sensor.getSensorTemp(&bme280);
         temInter = uart.getInternalTemp();
 
         uart.sendControlSignal((int)*intensidade);
-        sleep(2);
+        sleep(1);
     }
     uart.setSystemStatus(0);
 }
