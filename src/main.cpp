@@ -157,7 +157,9 @@ void esquenta(Uart uart, Pid pid, double *intensidade){
         uart.sendControlSignal((int)*intensidade);
 
         // Para o comando
-        void parar(uart);
+        if (uart.getUserInput() == 164) {
+            break;
+        }
     
         sleep(1);
     }
@@ -182,12 +184,13 @@ void esfriando(Uart uart, Sensor Sensor, Pid pid, double *intensidade){
         tempRef = uart.getReferenceTemp();
         
         pid.pid_atualiza_referencia(tempRef);
-
-
+        
         uart.sendControlSignal((int)*intensidade);
 
         // Para o comando
-        void parar(uart);
+        if (uart.getUserInput() == 164) {
+            break;
+        }
     
         sleep(1);
     }
@@ -217,11 +220,4 @@ void setDown(Uart uart){
     status(0);
     uart.setSystemState(0);
     uart.setSystemStatus(0);
-}
-
-void parar(Uart uart){
-    printf("parar %d", uart.getUserInput());
-    if (uart.getUserInput() == 164) {
-        break;
-    }
 }
