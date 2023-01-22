@@ -26,16 +26,18 @@ const int VENTOINHA = 5;
 void stop (int signal);
 void setupPin();
 void status(double intensidade);
-void esquenta(Uart uart, Pid pid, double *intensidade);
+void esquenta(Uart uart, Sensor Sensor, Pid pid, double *intensidade);
 void esfriando(Uart uart, Sensor Sensor, Pid pid, double *intensidade);
 void definePidSetup(int escolha, Pid pid);
 void setDown(Uart uart);
 void parar(Uart uart);
+void saveCSV(Uart uart, Sensor sensor,  double intensidade);
 
 
 int main(void){
     Uart uart;
     Pid pid;
+    Sensor sensor = Sensor("/dev/i2c-1", &bme280, &id);
 
     double intensidade = 0;
     bool ligado = false;
@@ -53,7 +55,6 @@ int main(void){
     // pid.setup(50.0, 0.2, 400.0);
     setupPin();
 
-    Sensor sensor = Sensor("/dev/i2c-1", &bme280, &id);
 
     signal(SIGINT, stop);
 
@@ -83,7 +84,7 @@ int main(void){
                 execucao = true;
                 printf("Iniciado \n");
                 uart.setSystemStatus(1);
-                esquenta(uart, pid, sensor, &intensidade);
+                esquenta(uart, sensor, pid, &intensidade);
                 esfriando(uart, sensor, pid, &intensidade);
             }
         }
@@ -159,20 +160,20 @@ void esquenta(Uart uart, Pid pid, Sensor Sensor, double *intensidade){
 
         pid.pid_atualiza_referencia(tempRef);
         *intensidade = pid.pid_controle(temInter);
-        printf("intensidade: %lf \n\n\n", intensidade);
+        printf("intensidade: %d \n\n\n", intensidade);
         uart.sendControlSignal((int)*intensidade);
 
         // Para o comando
         if (uart.getUserInput() == 164) {
             break;
         }
-        saveCSV(uart, pid, Sensor);
+        saveCSV(uart, Sensor, &intensidade);
 
         sleep(1);
     }
 }
 
-void saveCSV(Uart uart, Pid pid, Sensor sensor){
+void saveCSV(Uart uart, Sensor sensor, double intensidade){
     FILE* csv = fopen("../log.csv", "w");
     if (csv == NULL){
         perror("Error");
@@ -184,8 +185,8 @@ void saveCSV(Uart uart, Pid pid, Sensor sensor){
     char timeString[20];
     strftime(dateString, sizeof(dateString), "%Y-%m-%d", timenow);
     strftime(timeString, sizeof(timeString), "%H:%M:%S", timenow);
-    fprintf(csv, "%s, %s, %f, %f, %f, %.2lf\n", dateString, timeString, uart.getInternalTemp(), sensor.getSensorTemp(&bme), uart.getReferenceTemp(), *pid);
-    printf("%s, %s, %f, %f, %f, %.2lf\n", dateString, timeString, uart.getInternalTemp(), sensor.getSensorTemp(&bme), uart.getReferenceTemp(), *pid);
+    fprintf(csv, "%s, %s, %f, %f, %f, %.2lf\n", dateString, timeString, uart.getInternalTemp(), sensor.getSensorTemp(&bme280), uart.getReferenceTemp(), intensidade);
+    printf("%s, %s, %f, %f, %f, %.2lf\n", dateString, timeString, uart.getInternalTemp(), sensor.getSensorTemp(&bme280), uart.getReferenceTemp(), intensidade);
     fclose(csv);
 }
 
@@ -215,7 +216,7 @@ void esfriando(Uart uart, Sensor Sensor, Pid pid, double *intensidade){
         if (uart.getUserInput() == 164) {
             break;
         }
-        saveCSV(uart, pid, Sensor)
+        saveCSV(uart, Sensor, &intensidade);
         sleep(1);
     }
 }
