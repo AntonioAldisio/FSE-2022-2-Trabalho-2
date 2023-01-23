@@ -31,6 +31,7 @@ void esfriando(Uart uart, Sensor Sensor, Pid pid, double *intensidade);
 void definePidSetup(int escolha, Pid pid);
 void setDown(Uart uart);
 void parar(Uart uart);
+void writeToCSV(float internalTemp, double ambTemp, float refTemp, double intensidade);
 
 
 int main(void){
@@ -62,7 +63,6 @@ int main(void){
 
     while(working){
         int retorno = uart.getUserInput();
-        printf("%d \n", retorno);
         if (retorno == 161){
             if (!ligado){
                 ligado = true;
@@ -149,7 +149,7 @@ void esquenta(Uart uart, Pid pid, Sensor Sensor, double *intensidade){
 
     while(working && temInter <= tempRef){
 
-        printf("Estou Esquetando \n");
+        printf("Aquecendo \n");
         printf("temInter %f\n", temInter);
         printf("tempRef %f\n", tempRef);
 
@@ -162,13 +162,34 @@ void esquenta(Uart uart, Pid pid, Sensor Sensor, double *intensidade){
         printf("intensidade: %lf \n\n\n", intensidade);
         uart.sendControlSignal((int)*intensidade);
 
+        writeToCSV(temInter, ambTemp, tempRef, *intensidade);
+        // saveCSV(uart, pid, Sensor);
+
         // Para o comando
         if (uart.getUserInput() == 164) {
             break;
         }
-        saveCSV(uart, pid, Sensor);
 
         sleep(1);
+    }
+}
+
+void writeToCSV(float internalTemp, double ambTemp, float refTemp, double *intensidade){
+    offsetof file;
+    file.open('../log.csv', ios::app);
+    time_t now = time(NULL);
+    timenow = gmtime(&now);
+    char dateString[20];
+    char timeString[20];
+    strftime(dateString, sizeof(dateString), "%Y-%m-%d", timenow);
+    strftime(timeString, sizeof(timeString), "%H:%M:%S", timenow);
+
+    if (file.is_open()){
+        file << dateString << ", " << timeString << ", " << internalTemp << ", " << ambTemp << ", " << refTemp << ", " << intensidade << endl;
+        file.close();
+    }
+    else{
+        cout << "Unable to open file";
     }
 }
 
