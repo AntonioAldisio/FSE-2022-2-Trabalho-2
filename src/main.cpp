@@ -64,6 +64,7 @@ int main(void){
 
     while(working){
         int retorno = uart.getUserInput();
+        printf("retorno %d\n", retorno);
         if (retorno == 161){
             if (!ligado){
                 ligado = true;
@@ -80,7 +81,7 @@ int main(void){
             }
         }
         else if (retorno == 163){
-            if (!execucao){
+            if (ligado && !execucao){
                 execucao = true;
                 printf("Iniciado \n");
                 uart.setSystemStatus(1);
@@ -89,7 +90,7 @@ int main(void){
             }
         }
         else if (retorno == 164){
-            if (execucao){
+            if (ligado && execucao){
                 execucao = false;
                 printf("Parado \n");
                 uart.setSystemStatus(0);
