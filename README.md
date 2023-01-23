@@ -1,7 +1,8 @@
 # FSE-2022-2-Trabalho-2
 
 ## Enunciado
-[https://gitlab.com/fse_fga/trabalhos-2022_2/trabalho-2-2022-2](Link do enunciado do trabalho)
+[Link do enunciado do trabalho](https://gitlab.com/fse_fga/trabalhos-2022_2/trabalho-2-2022-2)
+
 
 ## Como rodar
 
@@ -17,4 +18,6 @@ make run
 ```
 
 ## Video 
-[https://youtu.be/93XV1BbLy9w](link do youtube)
+
+[link do youtube](https://youtu.be/93XV1BbLy9w)
+
