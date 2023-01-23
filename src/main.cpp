@@ -5,13 +5,14 @@
 #include <time.h>
 #include <iostream>
 #include <fstream>
+#include <cstddef>
 
 #include "../inc/uart.h"
 #include "../inc/bme280.h"
 #include "../inc/pid.h"
 #include "../inc/sensorTemp.h"
 
-
+using namespace std;
 struct bme280_dev bme280;
 struct identifier id;
 struct tm *timenow;
@@ -26,12 +27,12 @@ const int VENTOINHA = 5;
 void stop (int signal);
 void setupPin();
 void status(double intensidade);
-void esquenta(Uart uart, Pid pid, double *intensidade);
+void esquenta(Uart uart, Sensor Sensor, Pid pid, double *intensidade);
 void esfriando(Uart uart, Sensor Sensor, Pid pid, double *intensidade);
 void definePidSetup(int escolha, Pid pid);
 void setDown(Uart uart);
 void parar(Uart uart);
-void writeToCSV(float internalTemp, double ambTemp, float refTemp, double intensidade);
+void writeToCSV(float internalTemp, double ambTemp, float refTemp, int intensidade);
 
 
 int main(void){
@@ -139,7 +140,7 @@ void status(double intensidade){
         }
 }
 
-void esquenta(Uart uart, Pid pid, Sensor Sensor, double *intensidade){
+void esquenta(Uart uart, Sensor Sensor, Pid pid, double *intensidade){
     float tempRef = uart.getReferenceTemp();
     float temInter = uart.getInternalTemp();
     double ambTemp = Sensor.getSensorTemp(&bme280);
@@ -159,10 +160,10 @@ void esquenta(Uart uart, Pid pid, Sensor Sensor, double *intensidade){
 
         pid.pid_atualiza_referencia(tempRef);
         *intensidade = pid.pid_controle(temInter);
-        printf("intensidade: %lf \n\n\n", intensidade);
+        printf("intensidade: %f \n\n\n", intensidade);
         uart.sendControlSignal((int)*intensidade);
 
-        writeToCSV(temInter, ambTemp, tempRef, *intensidade);
+        writeToCSV(temInter, ambTemp, tempRef, (int)*intensidade);
         // saveCSV(uart, pid, Sensor);
 
         // Para o comando
@@ -174,9 +175,9 @@ void esquenta(Uart uart, Pid pid, Sensor Sensor, double *intensidade){
     }
 }
 
-void writeToCSV(float internalTemp, double ambTemp, float refTemp, double *intensidade){
-    offsetof file;
-    file.open('../log.csv', ios::app);
+void writeToCSV(float internalTemp, double ambTemp, float refTemp, int intensidade){
+    ofstream file;
+    file.open("../log.csv", ios::app);
     time_t now = time(NULL);
     timenow = gmtime(&now);
     char dateString[20];
@@ -189,26 +190,26 @@ void writeToCSV(float internalTemp, double ambTemp, float refTemp, double *inten
         file.close();
     }
     else{
-        cout << "Unable to open file";
+        printf( "Unable to open file\n");
     }
 }
 
-void saveCSV(Uart uart, Pid pid, Sensor sensor){
-    FILE* csv = fopen("../log.csv", "w");
-    if (csv == NULL){
-        perror("Error");
-    }
-    // std::ofstream csv;
-    time_t now = time(NULL);
-    timenow = gmtime(&now);
-    char dateString[20];
-    char timeString[20];
-    strftime(dateString, sizeof(dateString), "%Y-%m-%d", timenow);
-    strftime(timeString, sizeof(timeString), "%H:%M:%S", timenow);
-    fprintf(csv, "%s, %s, %f, %f, %f, %.2lf\n", dateString, timeString, uart.getInternalTemp(), sensor.getSensorTemp(&bme), uart.getReferenceTemp(), *pid);
-    printf("%s, %s, %f, %f, %f, %.2lf\n", dateString, timeString, uart.getInternalTemp(), sensor.getSensorTemp(&bme), uart.getReferenceTemp(), *pid);
-    fclose(csv);
-}
+// void saveCSV(Uart uart, Pid pid, Sensor sensor){
+//     FILE* csv = fopen("../log.csv", "w");
+//     if (csv == NULL){
+//         perror("Error");
+//     }
+//     // std::ofstream csv;
+//     time_t now = time(NULL);
+//     timenow = gmtime(&now);
+//     char dateString[20];
+//     char timeString[20];
+//     strftime(dateString, sizeof(dateString), "%Y-%m-%d", timenow);
+//     strftime(timeString, sizeof(timeString), "%H:%M:%S", timenow);
+//     fprintf(csv, "%s, %s, %f, %f, %f, %.2lf\n", dateString, timeString, uart.getInternalTemp(), sensor.getSensorTemp(&bme), uart.getReferenceTemp(), *pid);
+//     printf("%s, %s, %f, %f, %f, %.2lf\n", dateString, timeString, uart.getInternalTemp(), sensor.getSensorTemp(&bme), uart.getReferenceTemp(), *pid);
+//     fclose(csv);
+// }
 
 void esfriando(Uart uart, Sensor Sensor, Pid pid, double *intensidade){
     double ambTemp = Sensor.getSensorTemp(&bme280);
@@ -236,7 +237,7 @@ void esfriando(Uart uart, Sensor Sensor, Pid pid, double *intensidade){
         if (uart.getUserInput() == 164) {
             break;
         }
-        saveCSV(uart, pid, Sensor)
+        // saveCSV(uart, pid, Sensor)
         sleep(1);
     }
 }
