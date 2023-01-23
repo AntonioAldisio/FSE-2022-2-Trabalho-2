@@ -164,7 +164,7 @@ void esquenta(Uart uart, Sensor Sensor, Pid pid, double *intensidade){
         printf("intensidade: %f \n\n\n", intensidade);
         uart.sendControlSignal((int)*intensidade);
 
-        writeToCSV(temInter, ambTemp, tempRef, (int)*intensidade);
+        // writeToCSV(temInter, ambTemp, tempRef, (int)*intensidade);
         // saveCSV(uart, pid, Sensor);
 
         // Para o comando
@@ -197,7 +197,7 @@ void esfriando(Uart uart, Sensor Sensor, Pid pid, double *intensidade){
         pid.pid_atualiza_referencia(tempRef);
 
         uart.sendControlSignal((int)*intensidade);
-        writeToCSV(temInter, ambTemp, tempRef, (int)*intensidade);
+        // writeToCSV(temInter, ambTemp, tempRef, (int)*intensidade);
 
         sleep(1);
     }
