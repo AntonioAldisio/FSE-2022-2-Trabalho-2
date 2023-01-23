@@ -64,7 +64,6 @@ int main(void){
 
     while(working){
         int retorno = uart.getUserInput();
-        printf("retorno %d\n", retorno);
         if (retorno == 161){
             if (!ligado){
                 ligado = true;
@@ -151,9 +150,9 @@ void esquenta(Uart uart, Sensor Sensor, Pid pid, double *intensidade){
 
     while(working && temInter <= tempRef){
 
-        printf("Aquecendo \n");
-        printf("temInter %f\n", temInter);
-        printf("tempRef %f\n", tempRef);
+        // printf("Aquecendo \n");
+        // printf("temInter %f\n", temInter);
+        // printf("tempRef %f\n", tempRef);
 
         tempRef = uart.getReferenceTemp();
         temInter = uart.getInternalTemp();
@@ -161,16 +160,8 @@ void esquenta(Uart uart, Sensor Sensor, Pid pid, double *intensidade){
 
         pid.pid_atualiza_referencia(tempRef);
         *intensidade = pid.pid_controle(temInter);
-        printf("intensidade: %f \n\n\n", intensidade);
+        status(*intensidade);
         uart.sendControlSignal((int)*intensidade);
-
-        // writeToCSV(temInter, ambTemp, tempRef, (int)*intensidade);
-        // saveCSV(uart, pid, Sensor);
-
-        // Para o comando
-        if (uart.getUserInput() == 164) {
-            break;
-        }
 
         sleep(1);
     }
@@ -186,16 +177,15 @@ void esfriando(Uart uart, Sensor Sensor, Pid pid, double *intensidade){
 
     while(working && temInter >= ambTemp){
 
-        printf("Estou esfriando \n");
-        printf("temInter %f\n", temInter);
-        printf("tempRef %f\n", tempRef);
+        // printf("Estou esfriando \n");
+        // printf("temInter %f\n", temInter);
+        // printf("tempRef %f\n", tempRef);
 
         ambTemp = Sensor.getSensorTemp(&bme280);
         temInter = uart.getInternalTemp();
         tempRef = uart.getReferenceTemp();
 
         pid.pid_atualiza_referencia(tempRef);
-
         uart.sendControlSignal((int)*intensidade);
         // writeToCSV(temInter, ambTemp, tempRef, (int)*intensidade);
 
@@ -225,7 +215,6 @@ void definePidSetup(int escolha, Pid pid){
 }
 
 void setDown(Uart uart){
-    status(0);
     uart.setSystemState(0);
     uart.setSystemStatus(0);
 }
