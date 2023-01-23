@@ -94,6 +94,6 @@ void Uart::setSystemState(unsigned char state){
 }
 
 void Uart::setSystemStatus(unsigned char status){
-    send(10, modbus.setSystemStateMessage(status));
+    send(10, modbus.setSystemStatusMessage(status));
     receive();
 }
